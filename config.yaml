@@ -1,0 +1,5 @@
+log_level: info
+port: "50001"
+genesis_hash: "000000000019d6689c085ae165831de934c64aae2274baeef00fac1b1dc2b4da"
+default_balance: 100000000
+default_history_len: 10

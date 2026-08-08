@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-electrum
+  namespace: mock-services
+spec:
+  type: ClusterIP
+  ports:
+    - port: 50001
+      name: electrum
+      targetPort: 50001
+    - port: 8081
+      name: http
+      targetPort: 8081
+  selector:
+    app: mock-electrum
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-electrum
+  namespace: mock-services
+  labels:
+    managed-by: mock-servers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-electrum
+  template:
+    metadata:
+      labels:
+        app: mock-electrum
+    spec:
+      containers:
+      - name: mock-electrum
+        image: mock-electrum:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 50001
+          name: electrum
+        - containerPort: 8081
+          name: http
+        env:
+        - name: LOG_LEVEL
+          value: "info"
+        - name: PORT
+          value: "50001"
+        - name: HTTP_PORT
+          value: "8081"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8081
+          initialDelaySeconds: 2
+          periodSeconds: 3
+          timeoutSeconds: 2
+          failureThreshold: 2
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
